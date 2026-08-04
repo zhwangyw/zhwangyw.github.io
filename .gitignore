@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.vite/
+src/data/content-index.json
+*.log

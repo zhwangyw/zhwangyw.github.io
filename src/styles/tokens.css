@@ -1,0 +1,18 @@
+:root {
+  --bg: #020205;
+  --ink: #f7f8ff;
+  --muted: rgba(229, 232, 255, 0.62);
+  --faint: rgba(229, 232, 255, 0.34);
+  --panel: rgba(12, 13, 25, 0.52);
+  --panel-strong: rgba(8, 10, 20, 0.78);
+  --line: rgba(218, 223, 255, 0.16);
+  --blue: #72d7ff;
+  --violet: #a56cff;
+  --purple: #e07aff;
+  --pink: #ff82d8;
+  --green: #75ffc8;
+  --amber: #ffd07a;
+  --orange: #ff6531;
+  --radius: 16px;
+  --shadow: 0 18px 60px rgba(0, 0, 0, 0.42);
+}

@@ -1,0 +1,8 @@
+[
+  { "source": "F:\\cyber-mentor\\study\\roadmap.md", "slug": "roadmap", "category": "study", "title": "学习路线图" },
+  { "source": "F:\\cyber-mentor\\study\\mistakes.md", "slug": "mistakes", "category": "study", "title": "错题本" },
+  { "source": "F:\\cyber-mentor\\study\\weekly-review\\2026-W32.md", "slug": "weekly-2026-w32", "category": "study", "title": "2026-W32 周复盘" },
+  { "source": "D:\\个人知识库\\20-学习\\技能\\学习路线-PyTorch.md", "slug": "learning-roadmap-pytorch", "category": "knowledge", "title": "学习路线-PyTorch" },
+  { "source": "D:\\个人知识库\\20-学习\\技能\\深度学习速查卡.md", "slug": "deep-learning-cheatsheet", "category": "knowledge", "title": "深度学习速查卡" },
+  { "source": "D:\\个人知识库\\20-学习\\技能\\面试八股清单.md", "slug": "interview-eight-essays", "category": "knowledge", "title": "面试八股清单" }
+]
