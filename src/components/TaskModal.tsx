@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "./Modals";
 import { generateTasks } from "../lib/llm";
 import { newId, useStore, type RoadItem, type TaskItem } from "../lib/store";
 
 export default function TaskModal({
   item,
+  autoFocusAdd,
   onSave,
   onClose,
 }: {
   item: RoadItem;
+  autoFocusAdd?: boolean;
   onSave: (tasks: TaskItem[]) => void;
   onClose: () => void;
 }) {
@@ -16,6 +18,13 @@ export default function TaskModal({
   const [tasks, setTasks] = useState<TaskItem[]>(item.tasks);
   const [draft, setDraft] = useState("");
   const [generating, setGenerating] = useState(false);
+  const addRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (autoFocusAdd) {
+      window.setTimeout(() => addRef.current?.focus(), 50);
+    }
+  }, [autoFocusAdd]);
 
   const add = () => {
     const text = draft.trim();
@@ -68,6 +77,7 @@ export default function TaskModal({
       ))}
       <div className="task-add">
         <input
+          ref={addRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}

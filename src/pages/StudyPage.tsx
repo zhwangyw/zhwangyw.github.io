@@ -34,6 +34,7 @@ export default function StudyPage() {
   const [renameT, setRenameT] = useState("");
   const [styleFor, setStyleFor] = useState<number | null>(null);
   const [tasksFor, setTasksFor] = useState<number | null>(null);
+  const [tasksAutoFocus, setTasksAutoFocus] = useState(false);
   const [showCard, setShowCard] = useState(false);
   const [showLink, setShowLink] = useState(false);
   const [taskDrafts, setTaskDrafts] = useState<Record<number, string>>({});
@@ -365,7 +366,13 @@ export default function StudyPage() {
             setStyleFor(menu.i);
             setMenu(null);
           }}
+          onAddTask={() => {
+            setTasksAutoFocus(true);
+            setTasksFor(menu.i);
+            setMenu(null);
+          }}
           onTasks={() => {
+            setTasksAutoFocus(false);
             setTasksFor(menu.i);
             setMenu(null);
           }}
@@ -389,6 +396,7 @@ export default function StudyPage() {
       {tasksFor != null && roadmap[tasksFor] && (
         <TaskModal
           item={roadmap[tasksFor]}
+          autoFocusAdd={tasksAutoFocus}
           onClose={() => setTasksFor(null)}
           onSave={(tasks: TaskItem[]) => {
             patch(tasksFor, (it) => ({ ...it, tasks }));

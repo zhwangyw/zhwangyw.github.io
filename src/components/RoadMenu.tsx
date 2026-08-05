@@ -6,6 +6,7 @@ export default function RoadMenu({
   onClose,
   onRename,
   onStyle,
+  onAddTask,
   onTasks,
   onDelete,
 }: {
@@ -14,6 +15,7 @@ export default function RoadMenu({
   onClose: () => void;
   onRename: () => void;
   onStyle: () => void;
+  onAddTask: () => void;
   onTasks: () => void;
   onDelete: () => void;
 }) {
@@ -42,6 +44,9 @@ export default function RoadMenu({
       </button>
       <button className="road-menu-item" onClick={onStyle}>
         修改样式
+      </button>
+      <button className="road-menu-item" onClick={onAddTask}>
+        添加子任务
       </button>
       <button className="road-menu-item" onClick={onTasks}>
         修改进度
