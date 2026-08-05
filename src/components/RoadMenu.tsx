@@ -18,8 +18,10 @@ export default function RoadMenu({
   onDelete: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const openedAt = useRef(Date.now());
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
+      if (Date.now() - openedAt.current < 150) return;
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     };
     const onKey = (e: KeyboardEvent) => {

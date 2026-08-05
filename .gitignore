@@ -4,3 +4,4 @@ dist/
 src/data/content-index.json
 src/data/sources.json
 *.log
+DeepTutor/

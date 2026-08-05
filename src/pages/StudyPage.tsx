@@ -36,6 +36,7 @@ export default function StudyPage() {
   const [tasksFor, setTasksFor] = useState<number | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [showLink, setShowLink] = useState(false);
+  const [taskDrafts, setTaskDrafts] = useState<Record<number, string>>({});
 
   const md = (slug: string) => entries.find((e) => e.category === "study" && e.slug === slug);
   const mistakes = md("mistakes");
@@ -63,6 +64,16 @@ export default function StudyPage() {
     setRoadmap(next);
     setRenameT("");
     setRenaming(next.length - 1);
+  };
+  const toggleTask = (i: number, id: string) =>
+    patch(i, (it) => ({ ...it, tasks: it.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) }));
+  const removeTask = (i: number, id: string) =>
+    patch(i, (it) => ({ ...it, tasks: it.tasks.filter((t) => t.id !== id) }));
+  const addTaskTo = (i: number) => {
+    const text = (taskDrafts[i] ?? "").trim();
+    if (!text) return;
+    patch(i, (it) => ({ ...it, tasks: [...it.tasks, { id: newId(), text, done: false }] }));
+    setTaskDrafts((d) => ({ ...d, [i]: "" }));
   };
 
   const newMistake = () => {
@@ -197,9 +208,11 @@ export default function StudyPage() {
                         </div>
                       )}
                       <button
+                        type="button"
                         className="road-more"
                         aria-label="更多操作"
                         onClick={(e) => {
+                          e.stopPropagation();
                           const r = e.currentTarget.getBoundingClientRect();
                           openMenu(i, r.right - 170, r.bottom + 4);
                         }}
@@ -209,6 +222,42 @@ export default function StudyPage() {
                     </div>
                     <div className="bar">
                       <i style={{ width: pct + "%" }} />
+                    </div>
+                    <div className="road-tasks">
+                      {it.tasks.map((t) => (
+                        <div className="road-task" key={t.id}>
+                          <button
+                            type="button"
+                            className={"box" + (t.done ? " done" : "")}
+                            onClick={() => toggleTask(i, t.id)}
+                            aria-label="勾选子任务"
+                          >
+                            {t.done ? "✓" : ""}
+                          </button>
+                          <span className={t.done ? "done-text" : ""} style={{ flex: 1 }}>
+                            {t.text}
+                          </span>
+                          <button
+                            type="button"
+                            className="road-task-del"
+                            onClick={() => removeTask(i, t.id)}
+                            aria-label="删除子任务"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <div className="road-task-add">
+                        <input
+                          value={taskDrafts[i] ?? ""}
+                          onChange={(e) => setTaskDrafts((d) => ({ ...d, [i]: e.target.value }))}
+                          onKeyDown={(e) => e.key === "Enter" && addTaskTo(i)}
+                          placeholder="添加子任务，回车确认"
+                        />
+                        <button type="button" className="mini-btn" onClick={() => addTaskTo(i)}>
+                          ＋
+                        </button>
+                      </div>
                     </div>
                     <div className="road-meta">
                       <span>{it.tasks.length ? done + "/" + it.tasks.length + " 子任务" : "未拆分 · 用「修改进度」添加或 AI 生成"}</span>
