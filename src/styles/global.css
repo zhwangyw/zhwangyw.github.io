@@ -413,3 +413,22 @@ h3 { font-size: 16px; }
 @media (max-width: 900px) {
   .tutor-grid { grid-template-columns: 1fr; }
 }
+
+/* DeepTutor 直连聊天 */
+.dt-chat { display: flex; flex-direction: column; }
+.chat-scroll { height: 56vh; min-height: 380px; overflow-y: auto; padding: 4px 4px 8px; display: flex; flex-direction: column; gap: 10px; }
+.chat-empty { margin: 14px 4px; font-size: 13px; }
+.chat-msg { display: flex; }
+.chat-user { justify-content: flex-end; }
+.chat-assistant { justify-content: flex-start; }
+.chat-bubble { max-width: 86%; padding: 9px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+.chat-bubble-user { background: rgba(114, 215, 255, 0.14); border: 1px solid rgba(114, 215, 255, 0.28); color: var(--ink); }
+.chat-bubble-ai { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); color: var(--ink); }
+.chat-md { max-width: 92%; font-size: 13.5px; }
+.chat-md .md-body { font-size: 13.5px; }
+.chat-md .md-body p { margin: 6px 0; }
+.caret { display: inline-block; width: 7px; height: 14px; margin-left: 3px; vertical-align: -2px; background: var(--blue); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.chat-error { margin: 8px 0 0; padding: 8px 12px; border-radius: 10px; font-size: 12.5px; color: #ff9db0; background: rgba(255, 90, 120, 0.1); border: 1px solid rgba(255, 90, 120, 0.28); }
+.chat-input-row { display: flex; gap: 8px; margin-top: 10px; }
+.chat-input-row .link-input { flex: 1; min-width: 0; }

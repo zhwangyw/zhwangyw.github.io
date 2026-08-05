@@ -1,5 +1,5 @@
 export async function generateTasks(title: string, settings: Record<string, string>): Promise<string[]> {
-  const base = (settings.llmBase || "").trim();
+  const base = (settings.llmBase || "https://api.deepseek.com/v1").trim();
   const key = (settings.llmKey || "").trim();
   const model = (settings.llmModel || "").trim() || "deepseek-chat";
   if (!base || !key) throw new Error("未配置大模型 API（设置页）");

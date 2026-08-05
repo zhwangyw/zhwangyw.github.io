@@ -59,19 +59,28 @@ export default function SettingsPage() {
         <div className="glass setting-group">
           <h3>DeepTutor 接入</h3>
           <div className="field">
-            <label>服务地址（已部署的 DeepTutor 前端地址）</label>
+            <label>API 地址（后端，用于网页直连对话）</label>
+            <input
+              type="text"
+              value={settings.deeptutorApi || ""}
+              onChange={set("deeptutorApi")}
+              placeholder="http://127.0.0.1:8001"
+            />
+          </div>
+          <div className="field">
+            <label>前端地址（完整应用 / iframe）</label>
             <input
               type="text"
               value={settings.deeptutorUrl || ""}
               onChange={set("deeptutorUrl")}
-              placeholder="https://tutor.example.com"
+              placeholder="http://127.0.0.1:3782"
             />
           </div>
           <button className="btn btn-primary" onClick={() => toast("DeepTutor 地址已保存")}>
             保存地址
           </button>
           <p className="setting-note">
-            需先在服务器自托管 DeepTutor（pip 或 Docker）并配置大模型 API Key，填好地址后「AI 辅导」页会自动加载；若目标站点禁止 iframe，可改用新窗口打开。
+            需先在服务器自托管 DeepTutor（pip 或 Docker）并配置大模型 API Key。API 地址填后端（网页通过 WebSocket 直连），前端地址用于 iframe / 新窗口；若目标站点禁止 iframe，可改用新窗口打开。
           </p>
         </div>
       </div>

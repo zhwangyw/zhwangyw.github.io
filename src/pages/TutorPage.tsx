@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import DeepTutorChat from "../components/DeepTutorChat";
 import { buildRoadmapMd, pctOf } from "../lib/roadmapMd";
 import { useStore } from "../lib/store";
 
@@ -17,13 +19,23 @@ const STEPS = [
     d: "在服务器执行 pip install -U deeptutor，然后 deeptutor init && deeptutor start；或用 Docker 拉取 ghcr.io/hkuds/deeptutor",
   },
   { t: "配置大模型", d: "在 DeepTutor 的 Settings 里填入 OpenAI / DeepSeek / Gemini 等 API Key 与模型" },
-  { t: "填回博客", d: "在「设置」→ DeepTutor 接入里填写公网地址，本站即可内嵌加载" },
+  { t: "填回博客", d: "在「设置」→ DeepTutor 接入里填写 API 地址与前端地址，本站即可直连对话" },
 ];
 
+const LOCAL_API = "http://127.0.0.1:8001";
+const LOCAL_WEB = "http://127.0.0.1:3782";
+
 export default function TutorPage() {
-  const { settings, roadmap, toast } = useStore();
-  const url = (settings.deeptutorUrl || "").trim();
+  const { settings, saveSettings, roadmap, toast } = useStore();
+  const apiBase = (settings.deeptutorApi || "").trim();
+  const webUrl = (settings.deeptutorUrl || "").trim();
+  const [tab, setTab] = useState<"chat" | "app">("chat");
+  const configured = Boolean(apiBase);
   const total = roadmap.length ? Math.round(roadmap.reduce((s, it) => s + pctOf(it), 0) / roadmap.length) : 0;
+
+  const quickFill = () => {
+    saveSettings({ deeptutorApi: LOCAL_API, deeptutorUrl: LOCAL_WEB });
+  };
   const copyProfile = () => {
     navigator.clipboard
       .writeText(buildRoadmapMd(roadmap))
@@ -116,28 +128,55 @@ export default function TutorPage() {
         </div>
 
         <div>
-          {url ? (
-            <div className="glass tutor-card">
-              <div className="panel-head-row">
-                <h3>在线辅导</h3>
-                <a className="btn btn-ghost" href={url} target="_blank" rel="noreferrer">
-                  新窗口打开
-                </a>
+          {configured ? (
+            <>
+              <div className="btn-row" style={{ marginBottom: 10 }}>
+                <button className={"tab" + (tab === "chat" ? " is-active" : "")} onClick={() => setTab("chat")}>
+                  对话（直连 API）
+                </button>
+                <button className={"tab" + (tab === "app" ? " is-active" : "")} onClick={() => setTab("app")}>
+                  完整应用
+                </button>
               </div>
-              <iframe className="tutor-frame" src={url} title="DeepTutor 在线辅导" />
-              <p className="setting-note">
-                若下方空白，可能是对方站点禁止 iframe 嵌入，请点「新窗口打开」直接使用。
-              </p>
-            </div>
+              {tab === "chat" ? (
+                <DeepTutorChat apiBase={apiBase} />
+              ) : webUrl ? (
+                <div className="glass tutor-card">
+                  <div className="panel-head-row">
+                    <h3>完整应用</h3>
+                    <a className="btn btn-ghost" href={webUrl} target="_blank" rel="noreferrer">
+                      新窗口打开
+                    </a>
+                  </div>
+                  <iframe className="tutor-frame" src={webUrl} title="DeepTutor 完整应用" />
+                  <p className="setting-note">若下方空白，可能是对方站点禁止 iframe 嵌入，请点「新窗口打开」。</p>
+                </div>
+              ) : (
+                <div className="glass tutor-card">
+                  <h3>完整应用</h3>
+                  <p className="sub" style={{ fontSize: 13 }}>
+                    尚未填写前端地址。可在设置里补上，或先使用左侧的「对话（直连 API）」。
+                  </p>
+                  <Link className="btn btn-primary" to="/settings">
+                    去设置填写前端地址
+                  </Link>
+                </div>
+              )}
+            </>
           ) : (
             <div className="glass tutor-card">
               <h3>尚未接入</h3>
               <p className="sub" style={{ fontSize: 13 }}>
                 DeepTutor 需要自托管后端与 LLM API Key，纯静态博客无法直接运行它。完成左侧三步后，把服务地址填进设置，这里就会变成可用的在线辅导窗。
               </p>
-              <Link className="btn btn-primary" to="/settings">
-                去设置填写 DeepTutor 地址
-              </Link>
+              <div className="btn-row" style={{ marginTop: 12 }}>
+                <Link className="btn btn-primary" to="/settings">
+                  去设置填写地址
+                </Link>
+                <button className="btn btn-ghost" onClick={quickFill}>
+                  填入本机默认地址
+                </button>
+              </div>
             </div>
           )}
         </div>

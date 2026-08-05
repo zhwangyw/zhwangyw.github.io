@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import BackgroundFX from "./BackgroundFX";
 import Sidebar from "./Sidebar";
@@ -14,7 +14,17 @@ export default function Layout() {
       <div className="app">
         <Sidebar />
         <main className="main">
-          <Outlet />
+          <Suspense
+            fallback={
+              <div className="page">
+                <p className="sub" style={{ margin: 0 }}>
+                  加载中…
+                </p>
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </>

@@ -69,7 +69,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [recipes, setRecipes] = usePersistent<Recipe[]>("ks-recipes-v1", initialRecipes);
   const [linkCards, setLinkCards] = usePersistent<LinkCard[]>("ks-linkcards-v1", initialLinkCards);
   const [studyDocs, setStudyDocs] = usePersistent<Record<string, string>>("ks-studydocs-v1", {});
-  const [settings, setSettings] = usePersistent<Record<string, string>>("ks-settings-v1", {});
+  const [settings, setSettings] = usePersistent<Record<string, string>>("ks-settings-v1", {
+    llmBase: "https://api.deepseek.com/v1",
+    llmModel: "deepseek-chat",
+  });
   const timer = useRef<number | undefined>(undefined);
   const [msg, setMsg] = useState("");
 
