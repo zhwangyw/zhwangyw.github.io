@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CardModal, LinkGeneratorModal } from "../components/Modals";
 import MdEditor from "../components/MdEditor";
-import RoadMenu from "../components/RoadMenu";
 import StyleModal from "../components/StyleModal";
 import TaskModal from "../components/TaskModal";
 import { entries, lastSyncAt, sourceOf } from "../lib/content";
@@ -29,7 +28,7 @@ function download(name: string, text: string) {
 export default function StudyPage() {
   const { toast, roadmap, setRoadmap, linkCards, setLinkCards, studyDocs, setStudyDoc } = useStore();
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("roadmap");
-  const [menu, setMenu] = useState<{ i: number; x: number; y: number } | null>(null);
+  const [expanded, setExpanded] = useState<number | null>(null);
   const [renaming, setRenaming] = useState<number | null>(null);
   const [renameT, setRenameT] = useState("");
   const [styleFor, setStyleFor] = useState<number | null>(null);
@@ -48,8 +47,6 @@ export default function StudyPage() {
   const total = roadmap.length ? Math.round(roadmap.reduce((s, it) => s + pctOf(it), 0) / roadmap.length) : 0;
   const patch = (i: number, fn: (it: RoadItem) => RoadItem) =>
     setRoadmap(roadmap.map((it, j) => (j === i ? fn(it) : it)));
-
-  const openMenu = (i: number, x: number, y: number) => setMenu({ i, x, y });
 
   const commitRename = (i: number) => {
     const v = renameT.trim();
@@ -168,7 +165,7 @@ export default function StudyPage() {
                     className="road-card"
                     onContextMenu={(e) => {
                       e.preventDefault();
-                      openMenu(i, e.clientX, e.clientY);
+                      setExpanded(i);
                     }}
                   >
                     <div className="road-top">
@@ -214,8 +211,7 @@ export default function StudyPage() {
                         aria-label="更多操作"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const r = e.currentTarget.getBoundingClientRect();
-                          openMenu(i, r.right - 170, r.bottom + 4);
+                          setExpanded(expanded === i ? null : i);
                         }}
                       >
                         ⋯
@@ -264,6 +260,56 @@ export default function StudyPage() {
                       <span>{it.tasks.length ? done + "/" + it.tasks.length + " 子任务" : "未拆分 · 用「修改进度」添加或 AI 生成"}</span>
                       {srcBadge("study/roadmap", "来自")}
                     </div>
+                    {expanded === i && (
+                      <div className="road-actions">
+                        <button
+                          type="button"
+                          className="mini-btn"
+                          onClick={() => {
+                            setRenaming(i);
+                            setRenameT(it.t);
+                            setExpanded(null);
+                          }}
+                        >
+                          重命名
+                        </button>
+                        <button
+                          type="button"
+                          className="mini-btn"
+                          onClick={() => {
+                            setStyleFor(i);
+                            setExpanded(null);
+                          }}
+                        >
+                          修改样式
+                        </button>
+                        <button
+                          type="button"
+                          className="mini-btn"
+                          onClick={() => {
+                            setTasksAutoFocus(true);
+                            setTasksFor(i);
+                            setExpanded(null);
+                          }}
+                        >
+                          添加子任务
+                        </button>
+                        <button
+                          type="button"
+                          className="mini-btn"
+                          onClick={() => {
+                            setTasksAutoFocus(false);
+                            setTasksFor(i);
+                            setExpanded(null);
+                          }}
+                        >
+                          修改进度
+                        </button>
+                        <button type="button" className="mini-btn danger" onClick={() => removeItem(i)}>
+                          删除
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -350,37 +396,6 @@ export default function StudyPage() {
             ))}
           </div>
         </div>
-      )}
-
-      {menu && (
-        <RoadMenu
-          x={menu.x}
-          y={menu.y}
-          onClose={() => setMenu(null)}
-          onRename={() => {
-            setRenaming(menu.i);
-            setRenameT(roadmap[menu.i]?.t ?? "");
-            setMenu(null);
-          }}
-          onStyle={() => {
-            setStyleFor(menu.i);
-            setMenu(null);
-          }}
-          onAddTask={() => {
-            setTasksAutoFocus(true);
-            setTasksFor(menu.i);
-            setMenu(null);
-          }}
-          onTasks={() => {
-            setTasksAutoFocus(false);
-            setTasksFor(menu.i);
-            setMenu(null);
-          }}
-          onDelete={() => {
-            if (confirm("删除这条进度？")) setRoadmap(roadmap.filter((_, j) => j !== menu.i));
-            setMenu(null);
-          }}
-        />
       )}
 
       {styleFor != null && roadmap[styleFor] && (
