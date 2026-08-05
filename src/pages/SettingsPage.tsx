@@ -1,3 +1,4 @@
+import EditableIntro from "../components/EditableIntro";
 import { useStore } from "../lib/store";
 
 const FEISHU = [
@@ -26,7 +27,7 @@ export default function SettingsPage() {
     <div className="page">
       <p className="eyebrow">settings</p>
       <h1>设置</h1>
-      <p className="sub">接入飞书与大模型 API，配置保存在浏览器本地（v1 阶段）。</p>
+      <EditableIntro page="settings" defaultText="接入飞书与大模型 API，配置保存在浏览器本地（v1 阶段）。" />
       <div className="settings-grid">
         <div className="glass setting-group">
           <h3>飞书接入</h3>

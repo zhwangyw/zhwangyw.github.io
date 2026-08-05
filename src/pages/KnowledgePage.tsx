@@ -1,5 +1,6 @@
 import { useState } from "react";
 import CardRing3D from "../components/CardRing3D";
+import EditableIntro from "../components/EditableIntro";
 import StatCard from "../components/StatCard";
 import { notes, type Note } from "../data/notes";
 
@@ -24,7 +25,7 @@ export default function KnowledgePage() {
     <div className="page">
       <p className="eyebrow">knowledge</p>
       <h1>知识库工作台</h1>
-      <p className="sub">未读识别 · 阅读推进 · 知识沉淀。按钮切换视图：仪表盘 / 3D 卡片环 / 笔记列表。</p>
+      <EditableIntro page="knowledge" defaultText="未读识别 · 阅读推进 · 知识沉淀。按钮切换视图：仪表盘 / 3D 卡片环 / 笔记列表。" />
       <div className="btn-row" style={{ marginTop: 18 }}>
         {(
           [

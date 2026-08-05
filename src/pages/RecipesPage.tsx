@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import EditableIntro from "../components/EditableIntro";
 import { LinkGeneratorModal, RecipeModal } from "../components/Modals";
 import { useStore, type Recipe } from "../lib/store";
 
@@ -15,7 +16,7 @@ export default function RecipesPage() {
     <div className="page">
       <p className="eyebrow">recipes</p>
       <h1>食谱</h1>
-      <p className="sub">学做菜的菜谱库：家常菜、汤羹、烘焙、饮品。点击卡片查看做法。</p>
+      <EditableIntro page="recipes" defaultText="学做菜的菜谱库：家常菜、汤羹、烘焙、饮品。点击卡片查看做法。" />
       <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
         <button className="btn btn-primary" onClick={() => setShowLink(true)}>
           ＋ 从链接生成食谱卡片

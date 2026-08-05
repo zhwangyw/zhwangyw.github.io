@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import EditableIntro from "../components/EditableIntro";
 import { buildRoadmapMd, pctOf } from "../lib/roadmapMd";
 import { useStore } from "../lib/store";
 
@@ -23,7 +24,7 @@ const STEPS = [
 
 export default function TutorPage() {
   const { settings, roadmap, toast } = useStore();
-  const [tab, setTab] = useState<"intro" | "app">("intro");
+  const [tab, setTab] = useState<"app" | "intro">("app");
   const [frameLoaded, setFrameLoaded] = useState(false);
   const url = (settings.deeptutorUrl || "").trim();
   useEffect(() => {
@@ -41,16 +42,14 @@ export default function TutorPage() {
     <div className="page">
       <p className="eyebrow">ai tutor</p>
       <h1>AI 辅导</h1>
-      <p className="sub">
-        DeepTutor：港大 HKUDS 开源的终身个性化 AI 辅导系统（GitHub 30.2k 星）。说明与应用分开展示，避免互相挤占空间。
-      </p>
+      <EditableIntro page="tutor" defaultText="DeepTutor：港大 HKUDS 开源的终身个性化 AI 辅导系统（GitHub 30.2k 星）。说明与应用分开展示，避免互相挤占空间。" />
 
       <div className="btn-row" style={{ marginTop: 18 }}>
-        <button className={"tab" + (tab === "intro" ? " is-active" : "")} onClick={() => setTab("intro")}>
-          说明
-        </button>
         <button className={"tab" + (tab === "app" ? " is-active" : "")} onClick={() => setTab("app")}>
           应用
+        </button>
+        <button className={"tab" + (tab === "intro" ? " is-active" : "")} onClick={() => setTab("intro")}>
+          说明
         </button>
       </div>
 

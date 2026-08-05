@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import EditableIntro from "../components/EditableIntro";
 import { posts } from "../lib/content";
 
 const RULES = [
@@ -23,7 +24,7 @@ export default function BlogPage() {
     <div className="page">
       <p className="eyebrow">blog</p>
       <h1>技术博客</h1>
-      <p className="sub">PyTorch / 深度学习 / 偏振成像 / 学习系统。文章按内容自动归类。</p>
+      <EditableIntro page="blog" defaultText="PyTorch / 深度学习 / 偏振成像 / 学习系统。文章按内容自动归类。" />
       <div className="btn-row" style={{ marginTop: 18 }}>
         <button className={"tab" + (!cat ? " is-active" : "")} onClick={() => setCat("")}>
           全部

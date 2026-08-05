@@ -35,6 +35,8 @@ type Store = {
   setLinkCards: React.Dispatch<React.SetStateAction<LinkCard[]>>;
   studyDocs: Record<string, string>;
   setStudyDoc: (slug: string, md: string) => void;
+  intros: Record<string, string>;
+  setIntro: (page: string, text: string) => void;
   settings: Record<string, string>;
   saveSettings: (s: Record<string, string>) => void;
 };
@@ -69,6 +71,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [recipes, setRecipes] = usePersistent<Recipe[]>("ks-recipes-v1", initialRecipes);
   const [linkCards, setLinkCards] = usePersistent<LinkCard[]>("ks-linkcards-v1", initialLinkCards);
   const [studyDocs, setStudyDocs] = usePersistent<Record<string, string>>("ks-studydocs-v1", {});
+  const [intros, setIntros] = usePersistent<Record<string, string>>("ks-intros-v1", {});
   const [settings, setSettings] = usePersistent<Record<string, string>>("ks-settings-v1", {
     llmBase: "https://api.deepseek.com/v1",
     llmModel: "deepseek-chat",
@@ -89,10 +92,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setStudyDocs((prev) => ({ ...prev, [slug]: md }));
     toast("已保存到本机");
   };
+  const setIntro = (page: string, text: string) => {
+    setIntros((prev) => ({ ...prev, [page]: text }));
+    toast("介绍已更新");
+  };
 
   return (
     <Ctx.Provider
-      value={{ toast, roadmap, setRoadmap, recipes, setRecipes, linkCards, setLinkCards, studyDocs, setStudyDoc, settings, saveSettings }}
+      value={{
+        toast,
+        roadmap,
+        setRoadmap,
+        recipes,
+        setRecipes,
+        linkCards,
+        setLinkCards,
+        studyDocs,
+        setStudyDoc,
+        intros,
+        setIntro,
+        settings,
+        saveSettings,
+      }}
     >
       {children}
       <div className={"toast" + (msg ? " show" : "")}>{msg || " "}</div>

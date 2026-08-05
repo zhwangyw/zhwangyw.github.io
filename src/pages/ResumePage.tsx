@@ -1,3 +1,4 @@
+import EditableIntro from "../components/EditableIntro";
 import { site } from "../data/site";
 
 export default function ResumePage() {
@@ -33,7 +34,7 @@ export default function ResumePage() {
     <div className="page">
       <p className="eyebrow">resume</p>
       <h1>{site.handle}</h1>
-      <p className="sub">AI 与光电交叉 · 合肥 · 合工大 AI 硕士 2026 级（2029.6 毕业）</p>
+      <EditableIntro page="resume" defaultText="AI 与光电交叉 · 合肥 · 合工大 AI 硕士 2026 级（2029.6 毕业）" />
       <div className="resume-actions">
         <button className="btn btn-primary" onClick={() => window.print()}>
           导出 PDF

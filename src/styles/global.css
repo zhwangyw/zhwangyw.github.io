@@ -365,6 +365,11 @@ h3 { font-size: 16px; }
 .md-editor textarea:focus { outline: none; border-color: rgba(114, 215, 255, 0.5); }
 .mini-road { margin-bottom: 10px; }
 .mini-road .road-head { margin-bottom: 4px; }
+.editable-intro { position: relative; cursor: text; }
+.editable-intro .intro-edit-hint { display: inline-flex; align-items: center; margin-left: 6px; color: var(--faint); opacity: 0; transition: opacity 150ms ease; vertical-align: middle; }
+.editable-intro:hover .intro-edit-hint { opacity: 1; color: var(--blue); }
+.intro-edit { width: 100%; max-width: 640px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); color: var(--ink); font: inherit; font-size: 14px; margin: 4px 0; }
+.intro-edit:focus { outline: none; border-color: rgba(114, 215, 255, 0.5); box-shadow: 0 0 0 3px rgba(114, 215, 255, 0.12); }
 
 /* markdown content */
 .md-body { line-height: 1.8; color: var(--muted); font-size: 14.5px; }

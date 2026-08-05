@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import ConstellationMap from "../components/ConstellationMap";
+import EditableIntro from "../components/EditableIntro";
 import StatCard from "../components/StatCard";
 import { site } from "../data/site";
 
@@ -10,7 +11,7 @@ export default function HomePage() {
         <div>
           <p className="eyebrow">home · {site.location}</p>
           <h1>{site.title}</h1>
-          <p className="sub">{site.tagline}。当前主线：PyTorch → MNIST → 偏振成像。</p>
+          <EditableIntro page="home" defaultText={site.tagline + "。当前主线：PyTorch → MNIST → 偏振成像。"} />
         </div>
       </div>
       <div className="stat-row">
