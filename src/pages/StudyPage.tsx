@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { CardModal, LinkGeneratorModal } from "../components/Modals";
 import MdEditor from "../components/MdEditor";
 import RoadMenu from "../components/RoadMenu";
@@ -6,6 +7,7 @@ import StyleModal from "../components/StyleModal";
 import TaskModal from "../components/TaskModal";
 import { entries, lastSyncAt, sourceOf } from "../lib/content";
 import { ROAD_ICONS } from "../lib/icons";
+import { buildRoadmapJson, buildRoadmapMd, pctOf, PHASES } from "../lib/roadmapMd";
 import { newId, useStore, type RoadItem, type TaskItem } from "../lib/store";
 
 const TABS = [
@@ -14,16 +16,6 @@ const TABS = [
   { id: "weekly", label: "周复盘" },
   { id: "links", label: "链接卡片" },
 ] as const;
-
-const PHASES = [
-  { p: 1, tag: "阶段一 · 2026.8", t: "PyTorch 打基础", d: "小土堆教程 + MNIST GPU 实战：张量、自动求导、nn.Module、训练循环。" },
-  { p: 2, tag: "阶段二 · 2026.9-11", t: "深度学习理论", d: "d2l 中文版：线性回归 → MLP → CNN → RNN / Transformer。" },
-  { p: 3, tag: "阶段三 · 2026.12", t: "偏振成像课题", d: "阅读导师方向论文，复现 baseline：偏振图像 + 深度学习。" },
-  { p: 4, tag: "阶段四 · 2027+", t: "求职准备", d: "LeetCode 每日 1-2 题，八股与实习投递贯穿全程。" },
-];
-
-const pctOf = (it: RoadItem) =>
-  it.tasks.length ? Math.round((it.tasks.filter((t) => t.done).length / it.tasks.length) * 100) : 0;
 
 function download(name: string, text: string) {
   const blob = new Blob([text], { type: "text/markdown" });
@@ -73,34 +65,6 @@ export default function StudyPage() {
     setRenaming(next.length - 1);
   };
 
-  const buildRoadmapMd = () => {
-    const lines = [
-      "---",
-      'title: "学习路线图"',
-      'date: "' + new Date().toISOString().slice(0, 10) + '"',
-      'tags: ["路线图"]',
-      'summary: "由知识星空 v1.1 导出，放回 F:\\\\cyber-mentor\\\\study 后运行 npm run sync 回流。"',
-      "---",
-      "",
-      "# 学习路线图",
-      "",
-      "## 当前进度",
-    ];
-    roadmap.forEach((it) => {
-      lines.push("", "### " + it.t + "（" + pctOf(it) + "%）");
-      if (it.style.label) lines.push("> 标签：" + it.style.label);
-      if (!it.tasks.length) lines.push("- [ ] 未拆分：请在网站中用「AI 生成子任务」或手动添加");
-      it.tasks.forEach((t) => lines.push("- [" + (t.done ? "x" : " ") + "] " + t.text));
-    });
-    lines.push("", "## 阶段计划");
-    PHASES.forEach((ph) => {
-      const items = roadmap.filter((it) => it.phase === ph.p);
-      const avg = items.length ? Math.round(items.reduce((s, it) => s + pctOf(it), 0) / items.length) : 0;
-      lines.push("- " + ph.tag + " " + ph.t + "：" + avg + "%");
-    });
-    return lines.join("\n");
-  };
-
   const newMistake = () => {
     const entry =
       "\n\n## " + new Date().toISOString().slice(0, 10) + " 新错题\n\n- 题目：\n- 我的答案：\n- 正确思路：\n- 错因：\n- 重测状态：待重测\n";
@@ -143,8 +107,11 @@ export default function StudyPage() {
           数据源：cyber-mentor/study{lastSyncAt ? " · 上次同步：" + new Date(lastSyncAt).toLocaleString("zh-CN") : " · 未同步"}
         </span>
         <div className="btn-row">
-          <button className="mini-btn" onClick={() => download("roadmap.md", buildRoadmapMd())}>
+          <button className="mini-btn" onClick={() => download("roadmap.md", buildRoadmapMd(roadmap))}>
             导出路线图
+          </button>
+          <button className="mini-btn" onClick={() => download("learning-profile.json", buildRoadmapJson(roadmap))}>
+            导出学习档案
           </button>
           <button className="mini-btn" onClick={() => download("mistakes.md", mistakesMd)}>
             导出错题本
@@ -163,9 +130,14 @@ export default function StudyPage() {
           <div className="glass progress-card" style={{ marginTop: 16 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <h3>主线：PyTorch 实战 → 深度学习理论 → 偏振成像 → 求职</h3>
-              <button className="btn btn-ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={addTask}>
-                ＋ 添加任务
-              </button>
+              <div className="btn-row">
+                <Link className="btn btn-ghost" style={{ padding: "8px 14px", fontSize: 13 }} to="/tutor">
+                  AI 辅导
+                </Link>
+                <button className="btn btn-ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={addTask}>
+                  ＋ 添加任务
+                </button>
+              </div>
             </div>
             <div className="progress-bar">
               <i style={{ width: total + "%" }} />

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { buildRoadmapMd, pctOf } from "../lib/roadmapMd";
 import { useStore } from "../lib/store";
 
 const FEATURES = [
@@ -20,8 +21,15 @@ const STEPS = [
 ];
 
 export default function TutorPage() {
-  const { settings } = useStore();
+  const { settings, roadmap, toast } = useStore();
   const url = (settings.deeptutorUrl || "").trim();
+  const total = roadmap.length ? Math.round(roadmap.reduce((s, it) => s + pctOf(it), 0) / roadmap.length) : 0;
+  const copyProfile = () => {
+    navigator.clipboard
+      .writeText(buildRoadmapMd(roadmap))
+      .then(() => toast("路线图 Markdown 已复制，可粘贴给 DeepTutor"))
+      .catch(() => toast("复制失败，请手动复制"));
+  };
 
   return (
     <div className="page">
@@ -33,6 +41,35 @@ export default function TutorPage() {
 
       <div className="tutor-grid">
         <div>
+          <div className="glass tutor-card">
+            <div className="panel-head-row">
+              <h3>学习进度快照</h3>
+              <Link className="mini-btn" to="/study">
+                去学习进度
+              </Link>
+            </div>
+            <div className="progress-bar">
+              <i style={{ width: total + "%" }} />
+            </div>
+            <p className="sub" style={{ fontSize: 12.5, margin: "4px 0 12px" }}>
+              主线进度 {total}%（{roadmap.length} 项任务平均 · 子任务量化）
+            </p>
+            {roadmap.slice(0, 4).map((it) => (
+              <div className="mini-road" key={it.id}>
+                <div className="road-head" style={{ marginBottom: 4 }}>
+                  <b style={{ fontSize: 12.5 }}>{it.t}</b>
+                  <span className="pct num">{pctOf(it)}%</span>
+                </div>
+                <div className="bar">
+                  <i style={{ width: pctOf(it) + "%" }} />
+                </div>
+              </div>
+            ))}
+            <button className="mini-btn" style={{ marginTop: 10 }} onClick={copyProfile}>
+              复制路线图 Markdown（可粘贴给 DeepTutor）
+            </button>
+          </div>
+
           <div className="glass tutor-card">
             <h3>六大核心能力</h3>
             {FEATURES.map((f) => (

@@ -353,6 +353,8 @@ h3 { font-size: 16px; }
 .task-add input:focus { outline: none; border-color: rgba(114, 215, 255, 0.5); box-shadow: 0 0 0 3px rgba(114, 215, 255, 0.12); }
 .md-editor textarea { width: 100%; min-height: 280px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(6, 8, 16, 0.72); color: var(--ink); font: 13.5px/1.7 "Cascadia Code", Consolas, monospace; resize: vertical; }
 .md-editor textarea:focus { outline: none; border-color: rgba(114, 215, 255, 0.5); }
+.mini-road { margin-bottom: 10px; }
+.mini-road .road-head { margin-bottom: 4px; }
 
 /* markdown content */
 .md-body { line-height: 1.8; color: var(--muted); font-size: 14.5px; }
