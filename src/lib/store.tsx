@@ -3,7 +3,15 @@ import { initialRoadmap } from "../data/roadmap";
 import { initialRecipes } from "../data/recipes";
 import { initialLinkCards } from "../data/linkCards";
 
-export type RoadItem = { t: string; pct: number };
+export type TaskItem = { id: string; text: string; done: boolean };
+export type RoadStyle = { grad: string; icon: string; label: string; labelColor: string };
+export type RoadItem = {
+  id: string;
+  t: string;
+  phase: number;
+  tasks: TaskItem[];
+  style: RoadStyle;
+};
 export type Recipe = {
   t: string;
   cat: string;
@@ -25,6 +33,8 @@ type Store = {
   setRecipes: React.Dispatch<React.SetStateAction<Recipe[]>>;
   linkCards: LinkCard[];
   setLinkCards: React.Dispatch<React.SetStateAction<LinkCard[]>>;
+  studyDocs: Record<string, string>;
+  setStudyDoc: (slug: string, md: string) => void;
   settings: Record<string, string>;
   saveSettings: (s: Record<string, string>) => void;
 };
@@ -50,10 +60,15 @@ function usePersistent<T>(key: string, initial: T) {
   return [v, setV] as const;
 }
 
+export function newId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now() + Math.random());
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [roadmap, setRoadmap] = usePersistent<RoadItem[]>("ks-roadmap-v1", initialRoadmap);
+  const [roadmap, setRoadmap] = usePersistent<RoadItem[]>("ks-roadmap-v2", initialRoadmap);
   const [recipes, setRecipes] = usePersistent<Recipe[]>("ks-recipes-v1", initialRecipes);
   const [linkCards, setLinkCards] = usePersistent<LinkCard[]>("ks-linkcards-v1", initialLinkCards);
+  const [studyDocs, setStudyDocs] = usePersistent<Record<string, string>>("ks-studydocs-v1", {});
   const [settings, setSettings] = usePersistent<Record<string, string>>("ks-settings-v1", {});
   const timer = useRef<number | undefined>(undefined);
   const [msg, setMsg] = useState("");
@@ -67,10 +82,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setSettings({ ...settings, ...s });
     toast("设置已保存到本机");
   };
+  const setStudyDoc = (slug: string, md: string) => {
+    setStudyDocs((prev) => ({ ...prev, [slug]: md }));
+    toast("已保存到本机");
+  };
 
   return (
     <Ctx.Provider
-      value={{ toast, roadmap, setRoadmap, recipes, setRecipes, linkCards, setLinkCards, settings, saveSettings }}
+      value={{ toast, roadmap, setRoadmap, recipes, setRecipes, linkCards, setLinkCards, studyDocs, setStudyDoc, settings, saveSettings }}
     >
       {children}
       <div className={"toast" + (msg ? " show" : "")}>{msg || " "}</div>

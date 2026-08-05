@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { Article, ChartLineUp, CookingPot, GearSix, Graph, House, Sparkle, UserCircle } from "@phosphor-icons/react";
+import { Article, ChartLineUp, CookingPot, GearSix, GraduationCap, Graph, House, Sparkle, UserCircle } from "@phosphor-icons/react";
 import { site } from "../data/site";
 
 const items = [
   { to: "/", label: "首页", icon: House },
   { to: "/study", label: "学习进度", icon: ChartLineUp },
+  { to: "/tutor", label: "AI 辅导", icon: GraduationCap },
   { to: "/blog", label: "博客", icon: Article },
   { to: "/recipes", label: "食谱", icon: CookingPot },
   { to: "/knowledge", label: "知识库", icon: Graph },

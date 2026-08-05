@@ -38,3 +38,9 @@ const entries = files.map((f) => {
 
 writeFileSync("src/data/content-index.json", JSON.stringify(entries, null, 2));
 console.log("[*] content-index.json 生成完成:", entries.length, "条");
+
+const sources = existsSync("content/sources.json")
+  ? JSON.parse(readFileSync("content/sources.json", "utf8"))
+  : {};
+writeFileSync("src/data/sources.json", JSON.stringify(sources, null, 2));
+console.log("[*] sources.json 生成完成:", Object.keys(sources).length, "条来源");

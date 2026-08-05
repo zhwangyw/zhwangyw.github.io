@@ -120,7 +120,7 @@ export default function RecipesPage() {
           )}
         </aside>
       </div>
-      {showLink && <LinkGeneratorModal onClose={() => setShowLink(false)} />}
+      {showLink && <LinkGeneratorModal context="recipes" onClose={() => setShowLink(false)} />}
       {showAdd && <RecipeModal onClose={() => setShowAdd(false)} />}
     </div>
   );

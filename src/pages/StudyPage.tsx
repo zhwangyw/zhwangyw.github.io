@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { CardModal, LinkGeneratorModal } from "../components/Modals";
-import Markdown from "../components/Markdown";
-import { entries } from "../lib/content";
-import { useStore } from "../lib/store";
+import MdEditor from "../components/MdEditor";
+import RoadMenu from "../components/RoadMenu";
+import StyleModal from "../components/StyleModal";
+import TaskModal from "../components/TaskModal";
+import { entries, lastSyncAt, sourceOf } from "../lib/content";
+import { ROAD_ICONS } from "../lib/icons";
+import { newId, useStore, type RoadItem, type TaskItem } from "../lib/store";
 
 const TABS = [
   { id: "roadmap", label: "路线图" },
@@ -11,38 +15,121 @@ const TABS = [
   { id: "links", label: "链接卡片" },
 ] as const;
 
+const PHASES = [
+  { p: 1, tag: "阶段一 · 2026.8", t: "PyTorch 打基础", d: "小土堆教程 + MNIST GPU 实战：张量、自动求导、nn.Module、训练循环。" },
+  { p: 2, tag: "阶段二 · 2026.9-11", t: "深度学习理论", d: "d2l 中文版：线性回归 → MLP → CNN → RNN / Transformer。" },
+  { p: 3, tag: "阶段三 · 2026.12", t: "偏振成像课题", d: "阅读导师方向论文，复现 baseline：偏振图像 + 深度学习。" },
+  { p: 4, tag: "阶段四 · 2027+", t: "求职准备", d: "LeetCode 每日 1-2 题，八股与实习投递贯穿全程。" },
+];
+
+const pctOf = (it: RoadItem) =>
+  it.tasks.length ? Math.round((it.tasks.filter((t) => t.done).length / it.tasks.length) * 100) : 0;
+
+function download(name: string, text: string) {
+  const blob = new Blob([text], { type: "text/markdown" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 export default function StudyPage() {
-  const { toast, roadmap, setRoadmap, linkCards, setLinkCards } = useStore();
+  const { toast, roadmap, setRoadmap, linkCards, setLinkCards, studyDocs, setStudyDoc } = useStore();
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("roadmap");
-  const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [editT, setEditT] = useState("");
-  const [editPct, setEditPct] = useState(0);
+  const [menu, setMenu] = useState<{ i: number; x: number; y: number } | null>(null);
+  const [renaming, setRenaming] = useState<number | null>(null);
+  const [renameT, setRenameT] = useState("");
+  const [styleFor, setStyleFor] = useState<number | null>(null);
+  const [tasksFor, setTasksFor] = useState<number | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [showLink, setShowLink] = useState(false);
 
-  const total = roadmap.length ? Math.round(roadmap.reduce((s, x) => s + x.pct, 0) / roadmap.length) : 0;
   const md = (slug: string) => entries.find((e) => e.category === "study" && e.slug === slug);
-
-  const saveEdit = () => {
-    if (editIdx == null) return;
-    const v = editT.trim();
-    const p = Math.max(0, Math.min(100, Number(editPct) || 0));
-    if (v) setRoadmap(roadmap.map((it, i) => (i === editIdx ? { t: v, pct: p } : it)));
-    setEditIdx(null);
-  };
-  const removeItem = (i: number) => {
-    if (!confirm("删除这条进度？")) return;
-    setRoadmap(roadmap.filter((_, j) => j !== i));
-  };
-
   const mistakes = md("mistakes");
   const weekly = md("weekly-2026-w32");
+  const mistakesMd = studyDocs["mistakes"] ?? mistakes?.markdown ?? "";
+  const weeklyMd = studyDocs["weekly-2026-w32"] ?? weekly?.markdown ?? "";
+
+  const total = roadmap.length ? Math.round(roadmap.reduce((s, it) => s + pctOf(it), 0) / roadmap.length) : 0;
+  const patch = (i: number, fn: (it: RoadItem) => RoadItem) =>
+    setRoadmap(roadmap.map((it, j) => (j === i ? fn(it) : it)));
+
+  const openMenu = (i: number, x: number, y: number) => setMenu({ i, x, y });
+
+  const commitRename = (i: number) => {
+    const v = renameT.trim();
+    if (v) patch(i, (it) => ({ ...it, t: v }));
+    setRenaming(null);
+  };
+
+  const addTask = () => {
+    const next = [
+      ...roadmap,
+      { id: newId(), t: "", phase: 1, tasks: [], style: { grad: "grad-klein", icon: "star", label: "", labelColor: "#72d7ff" } },
+    ];
+    setRoadmap(next);
+    setRenameT("");
+    setRenaming(next.length - 1);
+  };
+
+  const buildRoadmapMd = () => {
+    const lines = [
+      "---",
+      'title: "学习路线图"',
+      'date: "' + new Date().toISOString().slice(0, 10) + '"',
+      'tags: ["路线图"]',
+      'summary: "由知识星空 v1.1 导出，放回 F:\\\\cyber-mentor\\\\study 后运行 npm run sync 回流。"',
+      "---",
+      "",
+      "# 学习路线图",
+      "",
+      "## 当前进度",
+    ];
+    roadmap.forEach((it) => {
+      lines.push("", "### " + it.t + "（" + pctOf(it) + "%）");
+      if (it.style.label) lines.push("> 标签：" + it.style.label);
+      if (!it.tasks.length) lines.push("- [ ] 未拆分：请在网站中用「AI 生成子任务」或手动添加");
+      it.tasks.forEach((t) => lines.push("- [" + (t.done ? "x" : " ") + "] " + t.text));
+    });
+    lines.push("", "## 阶段计划");
+    PHASES.forEach((ph) => {
+      const items = roadmap.filter((it) => it.phase === ph.p);
+      const avg = items.length ? Math.round(items.reduce((s, it) => s + pctOf(it), 0) / items.length) : 0;
+      lines.push("- " + ph.tag + " " + ph.t + "：" + avg + "%");
+    });
+    return lines.join("\n");
+  };
+
+  const newMistake = () => {
+    const entry =
+      "\n\n## " + new Date().toISOString().slice(0, 10) + " 新错题\n\n- 题目：\n- 我的答案：\n- 正确思路：\n- 错因：\n- 重测状态：待重测\n";
+    setStudyDoc("mistakes", mistakesMd + entry);
+    toast("已新建错题条目，请编辑填写");
+  };
+  const newWeekly = () => {
+    const entry =
+      "\n\n## 新周复盘（" + new Date().toISOString().slice(0, 10) + "）\n\n- 本周进展：\n- 遇到的问题：\n- 下周计划：\n- 下周时间投入调整：\n";
+    setStudyDoc("weekly-2026-w32", weeklyMd + entry);
+    toast("已新建复盘条目，请编辑填写");
+  };
+
+  const srcBadge = (slug: string, label: string) => {
+    const s = sourceOf(slug);
+    if (!s) return null;
+    const short = s.path.replace(/\\/g, "/").split("/").slice(-2).join("/");
+    return (
+      <span className="src-badge" title={s.path + "\n" + new Date(s.syncedAt).toLocaleString("zh-CN")}>
+        {label} · {short}
+      </span>
+    );
+  };
 
   return (
     <div className="page">
       <p className="eyebrow">study</p>
       <h1>学习进度</h1>
-      <p className="sub">按钮切换视图：路线图 / 错题本 / 周复盘 / 链接卡片。</p>
+
       <div className="btn-row" style={{ marginTop: 18 }}>
         {TABS.map((t) => (
           <button key={t.id} className={"tab" + (tab === t.id ? " is-active" : "")} onClick={() => setTab(t.id)}>
@@ -51,16 +138,32 @@ export default function StudyPage() {
         ))}
       </div>
 
+      <div className="glass sync-bar">
+        <span>
+          数据源：cyber-mentor/study{lastSyncAt ? " · 上次同步：" + new Date(lastSyncAt).toLocaleString("zh-CN") : " · 未同步"}
+        </span>
+        <div className="btn-row">
+          <button className="mini-btn" onClick={() => download("roadmap.md", buildRoadmapMd())}>
+            导出路线图
+          </button>
+          <button className="mini-btn" onClick={() => download("mistakes.md", mistakesMd)}>
+            导出错题本
+          </button>
+          <button className="mini-btn" onClick={() => download("weekly-2026-W32.md", weeklyMd)}>
+            导出周复盘
+          </button>
+        </div>
+      </div>
+      <p className="sub" style={{ fontSize: 12, margin: "8px 0 0" }}>
+        导出文件放回 F:\cyber-mentor\study 对应位置后，本地运行 npm run sync 即可回流并更新同步时间。
+      </p>
+
       {tab === "roadmap" && (
         <>
           <div className="glass progress-card" style={{ marginTop: 16 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <h3>主线：PyTorch 实战 → 深度学习理论 → 偏振成像 → 求职</h3>
-              <button
-                className="btn btn-ghost"
-                style={{ padding: "8px 14px", fontSize: 13 }}
-                onClick={() => setRoadmap([...roadmap, { t: "新任务（点编辑修改）", pct: 0 }])}
-              >
+              <button className="btn btn-ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={addTask}>
                 ＋ 添加任务
               </button>
             </div>
@@ -68,92 +171,136 @@ export default function StudyPage() {
               <i style={{ width: total + "%" }} />
             </div>
             <p className="sub" style={{ margin: 0 }}>
-              主线进度 {total}%（{roadmap.length} 项平均值 · 点「编辑」可修改每项完成度）
+              主线进度 {total}%（各任务「已完成子任务 / 总子任务」的平均值）
             </p>
-            <div>
-              {roadmap.map((item, i) => (
-                <div className="road-item" key={i}>
-                  {editIdx === i ? (
-                    <div className="road-head">
-                      <input className="edit-title" value={editT} onChange={(e) => setEditT(e.target.value)} autoFocus />
-                      <input
-                        className="edit-pct"
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={editPct}
-                        onChange={(e) => setEditPct(Number(e.target.value))}
-                        onKeyDown={(e) => e.key === "Enter" && saveEdit()}
-                      />
-                      <span className="pct num">%</span>
+            <div style={{ marginTop: 14 }}>
+              {roadmap.map((it, i) => {
+                const pct = pctOf(it);
+                const Icon = ROAD_ICONS[it.style.icon] ?? ROAD_ICONS.book;
+                const done = it.tasks.filter((t) => t.done).length;
+                return (
+                  <div
+                    key={it.id}
+                    className="road-card"
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      openMenu(i, e.clientX, e.clientY);
+                    }}
+                  >
+                    <div className="road-top">
+                      <div className={"road-ico " + it.style.grad}>
+                        <Icon size={18} weight="bold" />
+                      </div>
+                      {renaming === i ? (
+                        <input
+                          className="edit-title"
+                          value={renameT}
+                          autoFocus
+                          onChange={(e) => setRenameT(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") commitRename(i);
+                            if (e.key === "Escape") setRenaming(null);
+                          }}
+                          onBlur={() => commitRename(i)}
+                          placeholder="任务名称"
+                        />
+                      ) : (
+                        <div className="road-title">
+                          <b>{it.t || "未命名任务"}</b>
+                          <div className="road-chips">
+                            {it.style.label && (
+                              <span
+                                className="road-label"
+                                style={{
+                                  color: it.style.labelColor,
+                                  borderColor: it.style.labelColor + "66",
+                                  background: it.style.labelColor + "1a",
+                                }}
+                              >
+                                {it.style.label}
+                              </span>
+                            )}
+                            <span className="pct num">{pct}%</span>
+                          </div>
+                        </div>
+                      )}
+                      <button
+                        className="road-more"
+                        aria-label="更多操作"
+                        onClick={(e) => {
+                          const r = e.currentTarget.getBoundingClientRect();
+                          openMenu(i, r.right - 170, r.bottom + 4);
+                        }}
+                      >
+                        ⋯
+                      </button>
                     </div>
-                  ) : (
-                    <div className="road-head">
-                      <b>{item.t}</b>
-                      <span className="pct num">{item.pct}%</span>
+                    <div className="bar">
+                      <i style={{ width: pct + "%" }} />
                     </div>
-                  )}
-                  <div className="bar">
-                    <i style={{ width: item.pct + "%" }} />
+                    <div className="road-meta">
+                      <span>{it.tasks.length ? done + "/" + it.tasks.length + " 子任务" : "未拆分 · 用「修改进度」添加或 AI 生成"}</span>
+                      {srcBadge("study/roadmap", "来自")}
+                    </div>
                   </div>
-                  <div className="acts">
-                    <button className="mini-btn" onClick={() => setRoadmap(roadmap.map((it, j) => (j === i ? { ...it, pct: 100 } : it)))}>
-                      完成
-                    </button>
-                    <button
-                      className="mini-btn"
-                      onClick={() => {
-                        setEditIdx(i);
-                        setEditT(item.t);
-                        setEditPct(item.pct);
-                      }}
-                    >
-                      编辑
-                    </button>
-                    <button className="mini-btn danger" onClick={() => removeItem(i)}>
-                      删除
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           <div className="phase-grid">
-            {[
-              { tag: "阶段一 · 2026.8", t: "PyTorch 打基础", d: "小土堆教程 + MNIST GPU 实战：张量、自动求导、nn.Module、训练循环。", pct: 40 },
-              { tag: "阶段二 · 2026.9-11", t: "深度学习理论", d: "d2l 中文版：线性回归 → MLP → CNN → RNN / Transformer。", pct: 0 },
-              { tag: "阶段三 · 2026.12", t: "偏振成像课题", d: "阅读导师方向论文，复现 baseline：偏振图像 + 深度学习。", pct: 0 },
-              { tag: "阶段四 · 2027+", t: "求职准备", d: "LeetCode 每日 1-2 题，八股与实习投递贯穿全程。", pct: 5 },
-            ].map((p) => (
-              <div className="glass phase-card" key={p.t}>
-                <div className="tag">{p.tag}</div>
-                <h3>{p.t}</h3>
-                <p>{p.d}</p>
-                <div className="phase-pct num">{p.pct}%</div>
-              </div>
-            ))}
+            {PHASES.map((ph) => {
+              const items = roadmap.filter((it) => it.phase === ph.p);
+              const avg = items.length ? Math.round(items.reduce((s, it) => s + pctOf(it), 0) / items.length) : 0;
+              return (
+                <div className="glass phase-card" key={ph.p}>
+                  <div className="tag">{ph.tag}</div>
+                  <h3>{ph.t}</h3>
+                  <p>{ph.d}</p>
+                  <div className="phase-pct num">{avg}%</div>
+                  <div className="road-meta" style={{ marginTop: 6 }}>
+                    <span>{items.length} 项任务 · 由子任务汇总</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
 
       {tab === "mistakes" && (
         <div className="glass progress-card" style={{ marginTop: 16 }}>
-          <h3>错题本</h3>
-          {mistakes ? <Markdown>{mistakes.markdown}</Markdown> : <p className="sub">暂无数据，运行 npm run sync 同步错题本。</p>}
+          <div className="panel-head-row">
+            <h3>错题本</h3>
+            <div className="btn-row">
+              {srcBadge("study/mistakes", "来自")}
+              <button className="mini-btn" onClick={newMistake}>
+                ＋ 新建错题
+              </button>
+            </div>
+          </div>
+          <MdEditor content={mistakesMd} onSave={(m) => setStudyDoc("mistakes", m)} />
         </div>
       )}
 
       {tab === "weekly" && (
         <div className="glass progress-card" style={{ marginTop: 16 }}>
-          <h3>周复盘</h3>
-          {weekly ? <Markdown>{weekly.markdown}</Markdown> : <p className="sub">暂无数据。</p>}
+          <div className="panel-head-row">
+            <h3>周复盘</h3>
+            <div className="btn-row">
+              {srcBadge("study/weekly-2026-w32", "来自")}
+              <button className="mini-btn" onClick={newWeekly}>
+                ＋ 新建复盘
+              </button>
+            </div>
+          </div>
+          <MdEditor content={weeklyMd} onSave={(m) => setStudyDoc("weekly-2026-w32", m)} />
         </div>
       )}
 
       {tab === "links" && (
         <div className="glass progress-card" style={{ marginTop: 16 }}>
           <h3>链接卡片</h3>
-          <p className="sub">从视频链接生成的学习摘要卡片，点击链接可回到原视频。</p>
+          <p className="sub">从抖音 / 小红书 / B 站视频链接生成学习摘要卡片（要点 + 原链接），也可手动添加。</p>
           <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
             <button className="btn btn-ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setShowLink(true)}>
               ＋ 从链接生成学习卡片
@@ -183,7 +330,53 @@ export default function StudyPage() {
         </div>
       )}
 
-      {showLink && <LinkGeneratorModal onClose={() => setShowLink(false)} />}
+      {menu && (
+        <RoadMenu
+          x={menu.x}
+          y={menu.y}
+          onClose={() => setMenu(null)}
+          onRename={() => {
+            setRenaming(menu.i);
+            setRenameT(roadmap[menu.i]?.t ?? "");
+            setMenu(null);
+          }}
+          onStyle={() => {
+            setStyleFor(menu.i);
+            setMenu(null);
+          }}
+          onTasks={() => {
+            setTasksFor(menu.i);
+            setMenu(null);
+          }}
+          onDelete={() => {
+            if (confirm("删除这条进度？")) setRoadmap(roadmap.filter((_, j) => j !== menu.i));
+            setMenu(null);
+          }}
+        />
+      )}
+
+      {styleFor != null && roadmap[styleFor] && (
+        <StyleModal
+          initial={roadmap[styleFor].style}
+          onClose={() => setStyleFor(null)}
+          onSave={(s) => {
+            patch(styleFor, (it) => ({ ...it, style: s }));
+            setStyleFor(null);
+          }}
+        />
+      )}
+      {tasksFor != null && roadmap[tasksFor] && (
+        <TaskModal
+          item={roadmap[tasksFor]}
+          onClose={() => setTasksFor(null)}
+          onSave={(tasks: TaskItem[]) => {
+            patch(tasksFor, (it) => ({ ...it, tasks }));
+            setTasksFor(null);
+          }}
+        />
+      )}
+
+      {showLink && <LinkGeneratorModal context="study" onClose={() => setShowLink(false)} />}
       {showCard && <CardModal onClose={() => setShowCard(false)} />}
     </div>
   );

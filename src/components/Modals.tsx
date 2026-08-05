@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useStore } from "../lib/store";
 
-function Modal({ eyebrow, title, onClose, children }: { eyebrow: string; title: string; onClose: () => void; children: ReactNode }) {
+export function Modal({ eyebrow, title, onClose, children }: { eyebrow: string; title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
       className="modal-backdrop open"
@@ -25,7 +25,13 @@ function Modal({ eyebrow, title, onClose, children }: { eyebrow: string; title: 
   );
 }
 
-export function LinkGeneratorModal({ onClose }: { onClose: () => void }) {
+export function LinkGeneratorModal({
+  context = "recipes",
+  onClose,
+}: {
+  context?: "study" | "recipes";
+  onClose: () => void;
+}) {
   const { toast, recipes, setRecipes, linkCards, setLinkCards } = useStore();
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState("");
@@ -97,7 +103,9 @@ export function LinkGeneratorModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal eyebrow="LINK → CARD" title="从链接生成卡片" onClose={onClose}>
       <p className="sub" style={{ fontSize: 13, marginBottom: 12 }}>
-        支持抖音 / 小红书 / B 站等视频链接，自动解析生成食谱或学习卡片。
+        {context === "study"
+          ? "支持抖音 / 小红书 / B 站等视频链接，自动解析生成学习摘要卡片（要点 + 原链接）。"
+          : "支持抖音 / 小红书 / B 站等视频链接，自动解析生成含食材、火候、步骤的菜谱卡片。"}
       </p>
       <div className="link-bar">
         <input className="link-input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="粘贴视频链接，如 https://v.douyin.com/xxxx/" />

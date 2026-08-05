@@ -56,6 +56,24 @@ export default function SettingsPage() {
           </button>
           <p className="setting-note">配置仅保存在本机 localStorage；正式版由后端加密存储，并支持飞书任务 / 提醒与 AI 摘要。</p>
         </div>
+        <div className="glass setting-group">
+          <h3>DeepTutor 接入</h3>
+          <div className="field">
+            <label>服务地址（已部署的 DeepTutor 前端地址）</label>
+            <input
+              type="text"
+              value={settings.deeptutorUrl || ""}
+              onChange={set("deeptutorUrl")}
+              placeholder="https://tutor.example.com"
+            />
+          </div>
+          <button className="btn btn-primary" onClick={() => toast("DeepTutor 地址已保存")}>
+            保存地址
+          </button>
+          <p className="setting-note">
+            需先在服务器自托管 DeepTutor（pip 或 Docker）并配置大模型 API Key，填好地址后「AI 辅导」页会自动加载；若目标站点禁止 iframe，可改用新窗口打开。
+          </p>
+        </div>
       </div>
     </div>
   );

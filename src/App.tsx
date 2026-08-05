@@ -10,6 +10,7 @@ import RecipesPage from "./pages/RecipesPage";
 import ResumePage from "./pages/ResumePage";
 import SettingsPage from "./pages/SettingsPage";
 import StudyPage from "./pages/StudyPage";
+import TutorPage from "./pages/TutorPage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/study" element={<StudyPage />} />
+            <Route path="/tutor" element={<TutorPage />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:slug" element={<PostPage />} />
             <Route path="/recipes" element={<RecipesPage />} />
